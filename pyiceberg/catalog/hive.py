@@ -415,7 +415,7 @@ class HiveCatalog(MetastoreCatalog):
             namespace: Database to list.
 
         Returns:
-            List[Identifier]: list of view identifiers.
+            List[Identifier]: List of view identifiers.
 
         Raises:
             NoSuchNamespaceError: If a namespace with the given name does not exist, or the identifier is invalid.
@@ -425,10 +425,10 @@ class HiveCatalog(MetastoreCatalog):
             return [
                 (database_name, view.tableName)
                 for view in open_client.get_table_objects_by_name(
-                    dbname=database_name, tbl_names=open_client.get_all_tables(db_name=database_name)
+                    dbname=database_name, 
+                    tbl_names=open_client.get_all_tables(db_name=database_name)
                 )
-                # Check if entry is an Iceberg view
-                if view.parameters[TABLE_TYPE].lower() == ICEBERG and view.tableType.lower() == "view"
+                if view.parameters.get(TABLE_TYPE, "").lower() == ICEBERG and view.tableType.lower() == "virtual_view"
             ]
 
 
@@ -674,7 +674,7 @@ class HiveCatalog(MetastoreCatalog):
                 for table in open_client.get_table_objects_by_name(
                     dbname=database_name, tbl_names=open_client.get_all_tables(db_name=database_name)
                 )
-                if table.parameters[TABLE_TYPE].lower() == ICEBERG
+                if table.parameters[TABLE_TYPE].lower() == ICEBERG and table.tableType.lower() != "virtual_view"
             ]
 
     def list_namespaces(self, namespace: Union[str, Identifier] = ()) -> List[Identifier]:
